@@ -12,7 +12,7 @@ import {
   type SyncKeyInfo,
 } from '../lib/api'
 import { navigate } from '../App'
-import { Logo } from '../components/Logo'
+import { DoopMark, Logo } from '../components/Logo'
 import { ensureTab } from '../lib/desktop'
 import { Stage } from '../components/Stage'
 import { Board } from '../components/Board'
@@ -366,7 +366,7 @@ export function CanvasPage({ canvasId }: { canvasId: string }) {
                       setShowActivity(true)
                     }}
                   >
-                    ✦ Memory suggestion — review
+                    <DoopMark size={12} /> Memory suggestion — review
                   </Button>
                   <Button
                     variant="bare"

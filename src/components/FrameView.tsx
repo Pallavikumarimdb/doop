@@ -23,6 +23,8 @@ import { Tooltip } from './ui/tooltip'
 import { GithubIcon, SyncIcon } from './ui/icons'
 import { isSyncedFrame } from '../lib/sync'
 import { isGithubFrame, isGithubPlaceholder } from '../lib/github'
+import { AgentIcon } from './AgentIcon'
+import { RoleMark } from './RoleMark'
 
 /* Counter-scale contract: chrome that keeps constant on-screen size divides
    by the `--zoom` variable the Stage publishes (capped at 2.4× when zoomed
@@ -562,7 +564,8 @@ export const FrameView = memo(function FrameView({ frame, raster }: { frame: Fra
             <span className="flex gap-1">
               {stream && (
                 <span className={EDITOR_CHIP} style={{ background: stream.color }}>
-                  ✦ {stream.name} is designing
+                  <AgentIcon name={stream.name} size={9} color="#fff" />
+                  {stream.name} is designing
                   <span className="after:content-['…'] after:[animation:ellipsis_1.2s_steps(4)_infinite]" />
                 </span>
               )}
@@ -570,7 +573,7 @@ export const FrameView = memo(function FrameView({ frame, raster }: { frame: Fra
                 .filter((p) => p.name !== stream?.name)
                 .map((p) => (
                   <span key={p.clientId} className={EDITOR_CHIP} style={{ background: p.color }}>
-                    {p.kind === 'agent' ? '✦' : '✎'} {p.name}
+                    {p.kind === 'agent' ? <AgentIcon name={p.name} size={9} color="#fff" /> : '✎'} {p.name}
                   </span>
                 ))}
             </span>
@@ -884,15 +887,16 @@ function CommentComposer({
               title={`${role.name} — ${role.blurb}`}
               onClick={() => setText((t) => (t ? t.replace(/\s*$/, ' ') : '') + `@${role.id} `)}
             >
-              {role.emoji} @{role.id}
+              <RoleMark role={role} size={13} /> @{role.id}
             </Button>
           ))}
         </div>
       )}
       <div className="flex items-center justify-end gap-2">
         {mentioned && (
-          <span className="mr-auto text-[11px] font-semibold text-brand">
-            {mentioned.emoji} {mentioned.name} will pick this up
+          <span className="mr-auto inline-flex items-center gap-1 text-[11px] font-semibold text-brand">
+            <RoleMark role={mentioned} size={13} />
+            {mentioned.name} will pick this up
           </span>
         )}
         <Button variant="solid" size="pill" className="px-3.5 py-[5px] text-xs" disabled={!text.trim()} onClick={send}>
@@ -1003,10 +1007,11 @@ function CommentThread({
         </Button>
         {mentioned && (
           <span
-            className="ml-auto truncate text-[11px] font-semibold text-brand"
+            className="ml-auto inline-flex min-w-0 items-center gap-1 truncate text-[11px] font-semibold text-brand"
             title={`${mentioned.name} will pick this up`}
           >
-            {mentioned.emoji} {mentioned.name}
+            <RoleMark role={mentioned} size={13} />
+            <span className="truncate">{mentioned.name}</span>
           </span>
         )}
         <Button

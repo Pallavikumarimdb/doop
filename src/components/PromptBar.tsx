@@ -7,6 +7,7 @@ import { MeterLine, isResidentLimit, useAllowance } from './TeamAllowance'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Note } from './ui/note'
+import { DoopMark } from './Logo'
 
 /**
  * The canvas's front door to the resident team: a prompt bar that queues a
@@ -246,7 +247,7 @@ export function PromptBar({ canvasId }: { canvasId: string }) {
           </Note>
         ) : sent ? (
           <Note size="sm" className="text-xs text-ink-soft">
-            ✦ The Doop Agent is on it — watch the canvas
+            <DoopMark size={11} /> The Doop Agent is on it — watch the canvas
           </Note>
         ) : (
           <MeterLine allowance={allowance} />
