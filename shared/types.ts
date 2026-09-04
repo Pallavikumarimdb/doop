@@ -31,6 +31,39 @@ export interface CanvasMeta {
   agents?: { name: string; owner?: string; lastAt?: number }[]
 }
 
+/* ---- community gallery ---- */
+
+export const COMMUNITY_CATEGORIES = ['website', 'app', 'dashboard', 'mobile', 'marketing', 'other'] as const
+export type CommunityCategory = (typeof COMMUNITY_CATEGORIES)[number]
+
+export function isCommunityCategory(value: unknown): value is CommunityCategory {
+  return typeof value === 'string' && (COMMUNITY_CATEGORIES as readonly string[]).includes(value)
+}
+
+export const COMMUNITY_CATEGORY_LABELS: Record<CommunityCategory, string> = {
+  website: 'Websites',
+  app: 'Web apps',
+  dashboard: 'Dashboards',
+  mobile: 'Mobile',
+  marketing: 'Marketing',
+  other: 'Other',
+}
+
+/** One gallery card: what the community sees of a published canvas.
+ *  Frames are listed by id and size only — previews render through the
+ *  public /i/ image pipeline, the HTML never leaves the owner's canvas. */
+export interface CommunityItem {
+  id: string
+  name: string
+  description?: string
+  category: CommunityCategory
+  authorName: string
+  publishedAt: number
+  updatedAt: number
+  copyCount: number
+  frames: { id: string; name: string; width: number; height: number }[]
+}
+
 export interface Canvas {
   id: string
   name: string
@@ -41,6 +74,16 @@ export interface Canvas {
   linkAccess?: 'edit' | 'none'
   /** user ids invited to collaborate (the owner is not listed) */
   memberIds?: string[]
+  /** set while the owner lists this canvas in the community gallery. The
+   *  gallery shows previews and hands out copies — it never opens the
+   *  canvas itself, so publishing does not change who can edit it. */
+  publishedAt?: number
+  /** gallery blurb; meaningful only while published */
+  description?: string
+  /** gallery shelf; meaningful only while published */
+  category?: CommunityCategory
+  /** copies handed out by the gallery — its "trending" signal */
+  copyCount?: number
   createdAt: number
   updatedAt: number
   frames: Frame[]

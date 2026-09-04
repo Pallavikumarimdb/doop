@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Home } from './pages/Home'
+import { Community } from './pages/Community'
 import { Settings } from './pages/Settings'
 import { CanvasPage } from './pages/CanvasPage'
 import { AuthPage } from './pages/AuthPage'
@@ -118,6 +119,8 @@ export function App() {
     <Admin />
   ) : path.startsWith('/settings') ? (
     <Settings />
+  ) : path.startsWith('/community') ? (
+    <Community />
   ) : (
     <Home />
   )

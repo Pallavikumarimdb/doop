@@ -8,7 +8,15 @@ import { Logo } from '../components/Logo'
 import { timeAgo } from '../lib/time'
 import { AgentIcon } from '../components/AgentIcon'
 import { ShareModal } from '../components/ShareModal'
-import { AccountMenu, ConnectCard, IconGrid, IconList, IconShare, IconUser } from '../components/DashShell'
+import {
+  AccountMenu,
+  ConnectCard,
+  IconCommunity,
+  IconGrid,
+  IconList,
+  IconShare,
+  IconUser,
+} from '../components/DashShell'
 import { posthog } from '../lib/posthog'
 import { closeTab, openCanvasTab, pruneTabs } from '../lib/desktop'
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs'
@@ -216,6 +224,11 @@ export function Home() {
           />
         </nav>
 
+        <DashSectionLabel>Explore</DashSectionLabel>
+        <nav className="flex flex-col gap-0.5">
+          <NavItem icon={<IconCommunity />} label="Community" on={false} go={() => navigate('/community')} />
+        </nav>
+
         {agents.length > 0 && (
           <>
             <DashSectionLabel>Agents</DashSectionLabel>
@@ -344,13 +357,18 @@ export function Home() {
             </SegmentedIcons>
           </div>
 
-          <Tabs value={scope} onValueChange={(next) => setScope(next as Scope)} className="mt-4 flex md:hidden">
-            <TabsList className="h-10 w-full border border-line bg-surface p-1 shadow-card">
-              <TabsTrigger value="all">All · {counts.all}</TabsTrigger>
-              <TabsTrigger value="mine">Mine · {counts.mine}</TabsTrigger>
-              <TabsTrigger value="shared">Shared · {counts.shared}</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="mt-4 flex items-center gap-2 md:hidden">
+            <Tabs value={scope} onValueChange={(next) => setScope(next as Scope)} className="flex min-w-0 flex-1">
+              <TabsList className="h-10 w-full border border-line bg-surface p-1 shadow-card">
+                <TabsTrigger value="all">All · {counts.all}</TabsTrigger>
+                <TabsTrigger value="mine">Mine · {counts.mine}</TabsTrigger>
+                <TabsTrigger value="shared">Shared · {counts.shared}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button variant="ghost" className="h-10 flex-none gap-1.5" onClick={() => navigate('/community')}>
+              <IconCommunity /> Community
+            </Button>
+          </div>
 
           {empty ? (
             <Card className="mt-7 max-w-[560px] rounded-[18px] px-5 pb-6 pt-5 sm:px-7 sm:pb-7 sm:pt-[26px]">
@@ -585,7 +603,7 @@ function Meta({ canvas: c, onClaim }: { canvas: CanvasMeta; onClaim: () => void 
   )
 }
 
-function NavItem({
+export function NavItem({
   icon,
   label,
   count,
@@ -594,7 +612,7 @@ function NavItem({
 }: {
   icon: React.ReactNode
   label: string
-  count: number
+  count?: number
   on: boolean
   go: () => void
 }) {

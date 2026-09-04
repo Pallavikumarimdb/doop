@@ -167,6 +167,16 @@ export function IconShare() {
   )
 }
 
+/** the gallery: a compass — designs to steer by */
+export function IconCommunity() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" {...stroke} aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m15.5 8.5-2.2 5.3-4.8 1.7 2.2-5.3z" />
+    </svg>
+  )
+}
+
 export function IconSpark() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" {...stroke} aria-hidden>

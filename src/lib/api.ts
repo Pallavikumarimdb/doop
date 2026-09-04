@@ -1,4 +1,4 @@
-import type { ActivityItem, Canvas, CanvasMeta, Frame } from '../../shared/types'
+import type { ActivityItem, Canvas, CanvasMeta, CommunityCategory, CommunityItem, Frame } from '../../shared/types'
 
 export type HomeActivity = ActivityItem & { canvasId: string; canvasName: string }
 
@@ -185,6 +185,15 @@ export const api = {
   /* owner-only: what the share link grants people who aren't invited */
   setLinkAccess: (id: string, linkAccess: 'edit' | 'none') =>
     req('/api/canvases/' + id, { method: 'PATCH', body: JSON.stringify({ linkAccess }) }),
+  /* community gallery: owner-only listing, open browsing and copying */
+  publishCanvas: (id: string, listing: { description: string; category: CommunityCategory }) =>
+    req<Pick<Canvas, 'publishedAt' | 'description' | 'category'>>(`/api/canvases/${id}/publish`, {
+      method: 'PUT',
+      body: JSON.stringify(listing),
+    }),
+  unpublishCanvas: (id: string) => req(`/api/canvases/${id}/publish`, { method: 'DELETE' }),
+  listCommunity: () => req<CommunityItem[]>('/api/community'),
+  copyCommunityCanvas: (id: string) => req<Canvas>(`/api/community/${id}/copy`, { method: 'POST' }),
   /* collaborators: the owner plus invited members */
   listMembers: (canvasId: string) => req<CanvasMember[]>(`/api/canvases/${canvasId}/members`),
   inviteMember: (canvasId: string, email: string) =>

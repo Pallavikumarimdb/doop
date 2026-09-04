@@ -13,6 +13,7 @@ import * as actions from './actions.ts'
 import { canAccessCanvas, hasDurableCanvasAccess, isAdmin } from './access.ts'
 import { auth, initAuth, syncAdmins, getUserName, PUBLIC_ORIGIN, oidcPublicConfig } from './auth.ts'
 import { adminRouter } from './admin.ts'
+import { communityRouter, parseListing, publishableFrames } from './community.ts'
 import * as demo from './demo.ts'
 import { db, initDb } from './db/index.ts'
 import * as authSchema from './db/auth-schema.ts'
@@ -564,6 +565,7 @@ function requireFrame(req: express.Request, res: express.Response, frameId: stri
 }
 
 app.use('/api/admin', adminRouter)
+app.use('/api/community', communityRouter)
 
 /* free-tier meter for the resident team: {used, limit, connected, byoModel} */
 app.get('/api/agent-allowance', (req, res) => {
@@ -704,6 +706,27 @@ app.post('/api/canvases/:id/duplicate', async (req, res) => {
 app.get('/api/canvases/:id', (req, res) => {
   const c = requireCanvas(req, res, req.params.id)
   if (c) res.json(c)
+})
+
+/* Community gallery listing — the owner's call alone, like link access.
+   PUT both lists and re-describes; DELETE takes it down. */
+app.put('/api/canvases/:id/publish', (req, res) => {
+  const c = requireCanvas(req, res, req.params.id)
+  if (!c) return
+  if (c.ownerId !== req.user!.id) return res.status(403).json({ error: 'only the owner can publish a canvas' })
+  if (!publishableFrames(c).length) return res.status(400).json({ error: 'add a frame before publishing' })
+  const listing = parseListing(req.body)
+  if (typeof listing === 'string') return res.status(400).json({ error: listing })
+  const published = store.publishCanvas(c.id, listing)!
+  res.json({ publishedAt: published.publishedAt, description: published.description, category: published.category })
+})
+
+app.delete('/api/canvases/:id/publish', (req, res) => {
+  const c = requireCanvas(req, res, req.params.id)
+  if (!c) return
+  if (c.ownerId !== req.user!.id) return res.status(403).json({ error: 'only the owner can unpublish a canvas' })
+  store.unpublishCanvas(c.id)
+  res.json({ ok: true })
 })
 
 app.post('/api/canvases/:id/claim', (req, res) => {

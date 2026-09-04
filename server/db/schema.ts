@@ -14,6 +14,15 @@ export const canvases = pgTable('canvases', {
   ownerId: text('owner_id'),
   /** 'edit' | 'none'; null = 'none' (private — link sharing is opt-in) */
   linkAccess: text('link_access'),
+  /** set when the owner has listed this canvas in the community gallery;
+   *  null = private to its collaborators. Publishing grants read-only
+   *  previews and copies, never access to the canvas itself. */
+  publishedAt: bigint('published_at', { mode: 'number' }),
+  /** gallery blurb and category — meaningful only while published */
+  description: text('description'),
+  category: text('category'),
+  /** how many times the gallery has copied this canvas — the "trending" signal */
+  copyCount: integer('copy_count').notNull().default(0),
   createdAt: bigint('created_at', { mode: 'number' }).notNull(),
   updatedAt: bigint('updated_at', { mode: 'number' }).notNull(),
 })
