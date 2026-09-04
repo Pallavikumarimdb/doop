@@ -95,6 +95,13 @@ export function recordCreate(frame: Frame) {
   push({ type: 'create', frameId: frame.id, snapshot: snapshot(frame) })
 }
 
+/** Several frames created together (a multi-frame paste): one undo step. */
+export function recordCreates(frames: Frame[]) {
+  if (!frames.length) return
+  const entries: Entry[] = frames.map((f) => ({ type: 'create', frameId: f.id, snapshot: snapshot(f) }))
+  push(entries.length === 1 ? entries[0] : { type: 'group', entries })
+}
+
 /** Delete a frame through the API, remembering enough to bring it back. */
 export function deleteFrameTracked(frame: Frame) {
   deleteFramesTracked([frame])
@@ -124,7 +131,14 @@ async function recreate(e: { frameId: string; snapshot: Snapshot }) {
   const f = await api.createFrame(canvasId, rest)
   remapId(e.frameId, f.id)
   e.frameId = f.id
-  useStore.getState().select(f.id)
+}
+
+/* the frames an applied entry brought back (a redone create, an undone
+   delete): they become the selection, as a group when several returned */
+function recreatedIds(e: Entry, direction: 'undo' | 'redo'): string[] {
+  if (e.type === 'group') return e.entries.flatMap((child) => recreatedIds(child, direction))
+  const recreated = e.type === (direction === 'redo' ? 'create' : 'delete')
+  return recreated ? [e.frameId] : []
 }
 
 /* Apply an entry and report which of its members took effect. A group's
@@ -173,6 +187,8 @@ async function step(direction: 'undo' | 'redo') {
     const applied = await apply(e, direction)
     if (applied) {
       to.push(applied)
+      const ids = recreatedIds(applied, direction)
+      if (ids.length) useStore.getState().selectMany(ids)
       posthog.capture(direction === 'undo' ? 'canvas_undo' : 'canvas_redo')
     }
   } catch (err) {

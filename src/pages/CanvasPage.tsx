@@ -26,7 +26,13 @@ import { Onboarding } from '../components/Onboarding'
 import { ShareModal } from '../components/ShareModal'
 import { BrainIcon } from '../components/BrainIcon'
 import { getIdentity, setName } from '../lib/identity'
-import { copyFrame, duplicateFrame, hasFrameClip, pasteFrameCentered, pasteImagesCentered } from '../lib/frameClipboard'
+import {
+  copyFrames,
+  duplicateFrames,
+  hasFrameClip,
+  pasteFrameCentered,
+  pasteImagesCentered,
+} from '../lib/frameClipboard'
 import { clearHistory, deleteFramesTracked, recordCreate, redo, undo } from '../lib/history'
 import { authClient } from '../lib/auth'
 import { posthog } from '../lib/posthog'
@@ -131,7 +137,6 @@ export function CanvasPage({ canvasId }: { canvasId: string }) {
     function onKey(e: KeyboardEvent) {
       const t = e.target as HTMLElement
       if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable) return
-      const sel = useStore.getState().selectedId
       const selectedIds = useStore.getState().selectedIds
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.length) {
         e.preventDefault()
@@ -151,12 +156,13 @@ export function CanvasPage({ canvasId }: { canvasId: string }) {
         return
       }
       if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) {
-        const frame = useStore.getState().canvas?.frames.find((f) => f.id === sel)
+        /* ⌘C and ⌘D act on the whole selection */
+        const frames = useStore.getState().canvas?.frames.filter((f) => selectedIds.includes(f.id)) ?? []
         /* don't hijack ⌘C when the user is copying selected text */
-        if (e.key === 'c' && frame && !window.getSelection()?.toString()) copyFrame(frame)
-        if (e.key === 'd' && frame) {
+        if (e.key === 'c' && frames.length && !window.getSelection()?.toString()) copyFrames(frames)
+        if (e.key === 'd' && frames.length) {
           e.preventDefault()
-          duplicateFrame(frame)
+          duplicateFrames(frames)
         }
       }
     }
