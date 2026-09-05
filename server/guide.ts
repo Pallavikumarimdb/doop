@@ -31,7 +31,13 @@ export const DESIGN_QUALITY = `- Commit to ONE clear aesthetic direction per fra
 - White space is a feature. Vary spacing deliberately — tight inside groups, generous
   between them.
 - Realistic content everywhere. No lorem ipsum, no "Your text here". When placeholder
-  content needs a design tool as an example, it is Doop — never a competitor.`
+  content needs a design tool as an example, it is Doop — never a competitor.
+- Logos are real, never placeholders. Every slot that shows a company mark — "trusted by"
+  walls, integration and "works with" rows, payment methods, press bars, app-store
+  badges, the company beside a testimonial — gets that company's actual logo fetched
+  with search_logos (one call per brand, by domain). Choose real, recognizable brands
+  that fit the product's audience instead of inventing "Acme" or "Globex". No gray
+  tiles, no "LOGO" text, no initials-in-a-circle, no hand-drawn brand marks.`
 
 /** The brief-first ritual with its inspiration-retrieval mandate. Shared by the
  *  MCP guide and the resident system prompt (both toolsets expose
@@ -141,6 +147,8 @@ and fix real issues before moving on:
   trailing actions do not form clean vertical lanes.
 - **Realism**: lorem ipsum or "Item 1 / Item 2" content — replace with plausible, specific
   copy (invented product names, believable numbers, human sentences).
+- **Logos**: any placeholder brand mark (gray tile, "LOGO", initials, an invented company
+  wordmark) still in the frame — replace it with a real logo from search_logos.
 
 Prefer targeted fixes over rewrites. Never delete and restart a mostly-good frame — the
 humans watching lose work they may have been reacting to.
@@ -209,11 +217,14 @@ any public image URL. Source images in this order:
   monochrome icons with ?color=%23<hex> and size with &height=<px>.
 - **Company logos — search_logos.** Search a brand name or, far more reliably, its
   exact domain ("acme.io") and get the company's real mark as a hotlinkable URL, plus
-  open-source vector marks for well-known brands. Use it for customer-logo walls,
-  integration rows, testimonial cards and press bars — never guess a logo URL or
-  redraw a brand mark by hand. Follow the size guidance in the result: favicon-sourced
-  logos are small rasters (fine at ≤32px, ugly scaled up); vector marks scale to any
-  size.
+  open-source vector marks for well-known brands. Call it the moment a design needs a
+  logo — customer-logo walls, integration rows, testimonial cards, press bars, payment
+  methods — once per brand, BEFORE writing that section's HTML, so the real URLs go in
+  on the first pass instead of placeholders you would have to swap later. Never guess a
+  logo URL, redraw a brand mark by hand, or ship a placeholder tile. If a brand returns
+  nothing, retry with its exact domain, then pick a different real brand rather than
+  inventing one. Follow the size guidance in the result: favicon-sourced logos are
+  small rasters (fine at ≤32px, ugly scaled up); vector marks scale to any size.
 - **Your own file — upload_asset** (png/jpg/webp/gif/svg, max 5 MB), with the
   canvas_id it belongs to and ONE input, chosen by where the file lives:
   - Remote (it has a public URL): pass source_url — the server fetches it directly.
@@ -228,9 +239,10 @@ any public image URL. Source images in this order:
 - **When to use them.** Enumerated content — feature cards, step lists, capability
   grids, value rows — needs a visual anchor per item: an icon (search_icons), a big
   number, or a mono label. Naked text lists read as drafts. Pick ONE anchor style per
-  section and never use emoji as icons. Logos: real marks (search_logos) for real
-  things — integrations, platforms, payment methods; invented customers and
-  testimonials stay text wordmarks, never a real company's mark.
+  section and never use emoji as icons. Logos: always real marks from search_logos —
+  integrations, platforms, payment methods, and the customer walls and testimonial
+  cards too. Pick real brands the product's audience would recognize; invented quotes
+  can sit beside a real company mark, but a placeholder mark is never acceptable.
 - **Nothing fits — draw it.** Inline SVG or pure CSS (gradients, patterns, shapes) in
   the frame. Never ship a gray "image goes here" box, and never guess an image URL
   from memory — unverified URLs are usually dead.
