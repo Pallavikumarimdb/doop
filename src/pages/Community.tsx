@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   COMMUNITY_CATEGORIES,
   COMMUNITY_CATEGORY_LABELS,
+  PREVIEW_MAX_HEIGHT,
   type CommunityCategory,
   type CommunityItem,
 } from '../../shared/types'
@@ -377,10 +378,15 @@ function DesignModal({
       <div className="-mx-5 mt-4 flex gap-3 overflow-x-auto px-5 pb-2 sm:-mx-7 sm:px-7">
         {item.frames.map((frame) => (
           <figure key={frame.id} className="flex-none">
-            {/* one shared height so mixed artboards read as a row, not a staircase */}
+            {/* one shared height so mixed artboards read as a row, not a
+                staircase. The box takes the shape of the image it holds: the
+                preview render clips tall frames at PREVIEW_MAX_HEIGHT, so a
+                6000px landing page arrives as a landscape shot of its top —
+                sizing to the frame's real height would squeeze that into a
+                portrait sliver and crop the sides away. */}
             <div
               className="h-[300px] max-w-[min(520px,80vw)] overflow-hidden rounded-[10px] border border-line bg-paper-deep"
-              style={{ aspectRatio: `${frame.width} / ${Math.min(frame.height, frame.width * 1.4)}` }}
+              style={{ aspectRatio: `${frame.width} / ${Math.min(frame.height, PREVIEW_MAX_HEIGHT)}` }}
             >
               <FrameImage frameId={frame.id} />
             </div>

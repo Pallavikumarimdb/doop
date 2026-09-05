@@ -31,6 +31,12 @@ export interface CanvasMeta {
   agents?: { name: string; owner?: string; lastAt?: number }[]
 }
 
+/** The dashboard/gallery preview render (`/i/<id>.jpg?preview`) clips a
+ *  frame at this many frame pixels of height — a tall page's thumbnail is
+ *  its top section, not the whole page. Anything sizing a tile around that
+ *  image must assume this cap, not the frame's real height. */
+export const PREVIEW_MAX_HEIGHT = 1200
+
 /* ---- community gallery ---- */
 
 export const COMMUNITY_CATEGORIES = ['website', 'app', 'dashboard', 'mobile', 'marketing', 'other'] as const
