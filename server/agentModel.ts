@@ -54,7 +54,18 @@ export { ModelAuthError }
 /* ---------------------------------------------------------------- */
 
 const ANTHROPIC_MODEL = process.env.DOOP_AGENT_MODEL || 'claude-opus-5'
-const ANTHROPIC_TIMEOUT_MS = Number(process.env.ANTHROPIC_TIMEOUT_MS) || 15 * 60 * 1000
+
+export function parseTimeoutMs(raw: string | undefined, defaultMs = 15 * 60 * 1000): number {
+  if (!raw) return defaultMs
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed)) {
+    console.warn(`[anthropic] Invalid ANTHROPIC_TIMEOUT_MS="${raw}"; using default ${defaultMs}ms`)
+    return defaultMs
+  }
+  return parsed
+}
+
+const ANTHROPIC_TIMEOUT_MS = parseTimeoutMs(process.env.ANTHROPIC_TIMEOUT_MS)
 
 let anthropic: Anthropic | null = null
 

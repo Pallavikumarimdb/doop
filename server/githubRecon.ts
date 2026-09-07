@@ -200,54 +200,78 @@ export function treeExcerpt(paths: string[], sourcePath: string): string {
     .join('\n')
 }
 
+function normalizeDocument(content: string): string | null {
+  const clean = content.replace(/```\s*$/, '').trim()
+
+  // 1. Full document with doctype
+  const doctypeIndex = clean.search(/<!doctype/i)
+  if (doctypeIndex !== -1) {
+    return clean.slice(doctypeIndex)
+  }
+
+  // 2. <html> tag without doctype
+  const htmlIndex = clean.search(/<html/i)
+  if (htmlIndex !== -1) {
+    return '<!DOCTYPE html>\n' + clean.slice(htmlIndex)
+  }
+
+  // 3. Renderable component or fragment
+  const fragmentIndex = clean.search(/<(?:div|main|section|style|body|header|svg|table|nav|article|aside|form)/i)
+  if (fragmentIndex !== -1) {
+    return `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body>\n${clean.slice(fragmentIndex)}\n</body></html>`
+  }
+
+  return null
+}
+
 export function extractHtml(blocks: { type: string; text?: string }[]): { html: string; height: number } {
   const text = blocks
     .filter((b) => b.type === 'text' && b.text)
     .map((b) => b.text)
     .join('\n')
 
-  let candidate = text.trim()
-  // 1. Check for ```html ... ``` or ```xml ... ``` code fences
-  const htmlFence = text.match(/```(?:html|xml)?\s*([\s\S]*?)(?:```|$)/i)
-  if (htmlFence && (htmlFence[1].includes('<') || htmlFence[1].toLowerCase().includes('doctype'))) {
-    candidate = htmlFence[1].trim()
-  } else {
-    // 2. Check for any code fence containing HTML tags
-    const anyFence = text.match(/```\w*\s*([\s\S]*?)(?:```|$)/)
-    if (anyFence && /<(?:!doctype|html|div|main|section|style|body|header)/i.test(anyFence[1])) {
-      candidate = anyFence[1].trim()
+  // Find all code fences in the text
+  const fences = [...text.matchAll(/```([a-zA-Z0-9_-]*)\s*([\s\S]*?)(?:```|$)/g)].map((m) => ({
+    lang: (m[1] ?? '').toLowerCase(),
+    body: (m[2] ?? '').trim(),
+  }))
+
+  let html: string | null = null
+
+  // 1. First priority: any fence explicitly tagged ```html or ```htm
+  const htmlFences = fences.filter((f) => f.lang === 'html' || f.lang === 'htm')
+  for (const f of htmlFences) {
+    html = normalizeDocument(f.body)
+    if (html) break
+  }
+
+  // 2. Second priority: any fence containing a doctype or <html> tag
+  if (!html) {
+    const docFences = fences.filter((f) => /<!doctype|<html/i.test(f.body))
+    for (const f of docFences) {
+      html = normalizeDocument(f.body)
+      if (html) break
     }
   }
 
-  let html: string
-  // 3. Locate standard <!doctype
-  const start = candidate.search(/<!doctype/i)
-  if (start !== -1) {
-    html = candidate.slice(start)
-  } else {
-    // 4. Maybe the raw text has <!doctype outside the matched fence
-    const rawDoctype = text.search(/<!doctype/i)
-    if (rawDoctype !== -1) {
-      html = text.slice(rawDoctype)
-    } else {
-      // 5. Maybe <html ...> without <!DOCTYPE
-      const htmlTag = candidate.search(/<html/i)
-      if (htmlTag !== -1) {
-        html = '<!DOCTYPE html>\n' + candidate.slice(htmlTag)
-      } else {
-        // 6. Maybe a component fragment (e.g. <div> or <style>)
-        const fragment = candidate.search(/<(?:div|main|section|style|body|header|svg)/i)
-        if (fragment !== -1) {
-          html = `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body>\n${candidate.slice(fragment)}\n</body></html>`
-        } else {
-          console.error('[github-recon] extractHtml could not find HTML. Raw text preview:\n' + text.slice(0, 1000))
-          throw new Error('the model returned no HTML document')
-        }
-      }
+  // 3. Third priority: any fence containing component/layout markup
+  if (!html) {
+    for (const f of fences) {
+      html = normalizeDocument(f.body)
+      if (html) break
     }
   }
 
-  // Clean trailing markdown fences or stray ticks
+  // 4. Fourth priority: raw response (handles unfenced markup, or markup after fences)
+  if (!html) {
+    html = normalizeDocument(text)
+  }
+
+  if (!html) {
+    console.error('[github-recon] extractHtml could not find HTML. Raw text preview:\n' + text.slice(0, 1000))
+    throw new Error('the model returned no HTML document')
+  }
+
   html = html.replace(/```\s*$/, '').trim()
   const height = Math.min(8000, Math.max(480, Number(html.match(/doop-height:\s*(\d+)/)?.[1]) || 900))
   return { html, height }

@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { parseTimeoutMs } from './agentModel.ts'
 import { store } from './store.ts'
 import * as actions from './actions.ts'
 
@@ -18,7 +19,7 @@ const MODEL = process.env.DOOP_DISTILL_MODEL || 'claude-haiku-4-5-20251001'
 /** most recent unconsumed decisions the judge sees per run */
 const MAX_WINDOW = 15
 
-const ANTHROPIC_TIMEOUT_MS = Number(process.env.ANTHROPIC_TIMEOUT_MS) || 15 * 60 * 1000
+const ANTHROPIC_TIMEOUT_MS = parseTimeoutMs(process.env.ANTHROPIC_TIMEOUT_MS)
 
 let client: Anthropic | null = null
 

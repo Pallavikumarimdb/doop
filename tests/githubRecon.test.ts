@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { parseTimeoutMs } from '../server/agentModel.ts'
 import {
   designSystemSlug,
   extractHtml,
@@ -75,6 +76,43 @@ describe('extractHtml', () => {
     const fragment = extractHtml([{ type: 'text', text: '<div class="btn">Click me</div>' }])
     expect(fragment.html.startsWith('<!DOCTYPE html>')).toBe(true)
     expect(fragment.html).toContain('<div class="btn">Click me</div>')
+  })
+
+  it('does not let an unrelated leading code fence shadow valid HTML', () => {
+    const responseWithLeadingJson = extractHtml([
+      {
+        type: 'text',
+        text: 'Here is the config:\n```json\n{ "title": "<Header>" }\n```\nAnd here is the screen:\n```html\n<div class="dashboard">Dashboard Content</div>\n```',
+      },
+    ])
+    expect(responseWithLeadingJson.html.startsWith('<!DOCTYPE html>')).toBe(true)
+    expect(responseWithLeadingJson.html).toContain('Dashboard Content')
+
+    const responseWithLeadingCodeAndUnfencedHtml = extractHtml([
+      {
+        type: 'text',
+        text: 'Reviewing code:\n```typescript\nconst tag = "<Component>";\n```\nResulting markup:\n<main class="page">Page Content</main>',
+      },
+    ])
+    expect(responseWithLeadingCodeAndUnfencedHtml.html.startsWith('<!DOCTYPE html>')).toBe(true)
+    expect(responseWithLeadingCodeAndUnfencedHtml.html).toContain('Page Content')
+  })
+})
+
+describe('parseTimeoutMs', () => {
+  it('accepts valid integer millisecond strings', () => {
+    expect(parseTimeoutMs('600000')).toBe(600000)
+    expect(parseTimeoutMs('900000')).toBe(900000)
+  })
+
+  it('falls back to default for missing, negative, float, or invalid values', () => {
+    expect(parseTimeoutMs(undefined)).toBe(900000)
+    expect(parseTimeoutMs('')).toBe(900000)
+    expect(parseTimeoutMs('-100')).toBe(900000)
+    expect(parseTimeoutMs('0')).toBe(900000)
+    expect(parseTimeoutMs('12.5')).toBe(900000)
+    expect(parseTimeoutMs('Infinity')).toBe(900000)
+    expect(parseTimeoutMs('not-a-number')).toBe(900000)
   })
 })
 
