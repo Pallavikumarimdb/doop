@@ -55,6 +55,27 @@ describe('extractHtml', () => {
     expect(extractHtml([{ type: 'text', text: '<!doctype html><p>x</p>' }]).height).toBe(900)
     expect(() => extractHtml([{ type: 'text', text: 'sorry, no' }])).toThrow(/no HTML/)
   })
+
+  it('handles xml and generic code fences and unclosed markdown blocks', () => {
+    const xmlFenced = extractHtml([{ type: 'text', text: '```xml\n<!doctype html><div>x</div>\n```' }])
+    expect(xmlFenced.html).toContain('<!doctype html>')
+
+    const unclosed = extractHtml([
+      { type: 'text', text: '```html\n<!doctype html><div>unclosed\n<!-- doop-height: 1200 -->' },
+    ])
+    expect(unclosed.html).toContain('<!doctype html>')
+    expect(unclosed.height).toBe(1200)
+  })
+
+  it('normalizes html without doctype and component fragments into documents', () => {
+    const noDoctype = extractHtml([{ type: 'text', text: '<html><head></head><body><span>hello</span></body></html>' }])
+    expect(noDoctype.html.startsWith('<!DOCTYPE html>')).toBe(true)
+    expect(noDoctype.html).toContain('<span>hello</span>')
+
+    const fragment = extractHtml([{ type: 'text', text: '<div class="btn">Click me</div>' }])
+    expect(fragment.html.startsWith('<!DOCTYPE html>')).toBe(true)
+    expect(fragment.html).toContain('<div class="btn">Click me</div>')
+  })
 })
 
 describe('treeExcerpt', () => {

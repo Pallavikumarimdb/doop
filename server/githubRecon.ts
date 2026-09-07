@@ -205,11 +205,50 @@ export function extractHtml(blocks: { type: string; text?: string }[]): { html: 
     .filter((b) => b.type === 'text' && b.text)
     .map((b) => b.text)
     .join('\n')
-  const fenced = text.match(/```(?:html)?\s*([\s\S]*?)```/)
-  let html = (fenced ? fenced[1]! : text).trim()
-  const start = html.search(/<!doctype/i)
-  if (start === -1) throw new Error('the model returned no HTML document')
-  html = html.slice(start)
+
+  let candidate = text.trim()
+  // 1. Check for ```html ... ``` or ```xml ... ``` code fences
+  const htmlFence = text.match(/```(?:html|xml)?\s*([\s\S]*?)(?:```|$)/i)
+  if (htmlFence && (htmlFence[1].includes('<') || htmlFence[1].toLowerCase().includes('doctype'))) {
+    candidate = htmlFence[1].trim()
+  } else {
+    // 2. Check for any code fence containing HTML tags
+    const anyFence = text.match(/```\w*\s*([\s\S]*?)(?:```|$)/)
+    if (anyFence && /<(?:!doctype|html|div|main|section|style|body|header)/i.test(anyFence[1])) {
+      candidate = anyFence[1].trim()
+    }
+  }
+
+  let html: string
+  // 3. Locate standard <!doctype
+  const start = candidate.search(/<!doctype/i)
+  if (start !== -1) {
+    html = candidate.slice(start)
+  } else {
+    // 4. Maybe the raw text has <!doctype outside the matched fence
+    const rawDoctype = text.search(/<!doctype/i)
+    if (rawDoctype !== -1) {
+      html = text.slice(rawDoctype)
+    } else {
+      // 5. Maybe <html ...> without <!DOCTYPE
+      const htmlTag = candidate.search(/<html/i)
+      if (htmlTag !== -1) {
+        html = '<!DOCTYPE html>\n' + candidate.slice(htmlTag)
+      } else {
+        // 6. Maybe a component fragment (e.g. <div> or <style>)
+        const fragment = candidate.search(/<(?:div|main|section|style|body|header|svg)/i)
+        if (fragment !== -1) {
+          html = `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body>\n${candidate.slice(fragment)}\n</body></html>`
+        } else {
+          console.error('[github-recon] extractHtml could not find HTML. Raw text preview:\n' + text.slice(0, 1000))
+          throw new Error('the model returned no HTML document')
+        }
+      }
+    }
+  }
+
+  // Clean trailing markdown fences or stray ticks
+  html = html.replace(/```\s*$/, '').trim()
   const height = Math.min(8000, Math.max(480, Number(html.match(/doop-height:\s*(\d+)/)?.[1]) || 900))
   return { html, height }
 }

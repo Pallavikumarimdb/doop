@@ -54,6 +54,7 @@ export { ModelAuthError }
 /* ---------------------------------------------------------------- */
 
 const ANTHROPIC_MODEL = process.env.DOOP_AGENT_MODEL || 'claude-opus-5'
+const ANTHROPIC_TIMEOUT_MS = Number(process.env.ANTHROPIC_TIMEOUT_MS) || 15 * 60 * 1000
 
 let anthropic: Anthropic | null = null
 
@@ -64,7 +65,7 @@ function anthropicTier(): AgentModel | null {
     )
     return null
   }
-  if (!anthropic) anthropic = new Anthropic()
+  if (!anthropic) anthropic = new Anthropic({ timeout: ANTHROPIC_TIMEOUT_MS })
   const client = anthropic
   return {
     provider: 'anthropic',
