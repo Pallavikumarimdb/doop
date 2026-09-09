@@ -12,7 +12,8 @@ import { adminApi } from './lib/api'
 import { Button } from './components/ui/button'
 import { AuthScreen } from './components/ui/screen'
 import { DesktopTabs, ShellDragBar } from './components/DesktopTabs'
-import { isDesktopShell, setTabsUser } from './lib/desktop'
+import { setTabsUser } from './lib/desktop'
+import { isDesktopShell } from './lib/shell'
 
 export function navigate(path: string) {
   history.pushState(null, '', path)

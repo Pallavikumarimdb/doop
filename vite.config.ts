@@ -20,6 +20,8 @@ export default defineConfig({
   },
   server: {
     port: webPort,
+    /* cargo's build output is huge and, on Windows, its binaries stay locked
+       while the shell runs (EBUSY); nothing under it is ever served by vite */
     watch: {
       ignored: ['**/desktop/src-tauri/target/**'],
     },
