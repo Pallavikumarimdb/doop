@@ -99,7 +99,8 @@ export function recordCreate(frame: Frame) {
 export function recordCreates(frames: Frame[]) {
   if (!frames.length) return
   const entries: Entry[] = frames.map((f) => ({ type: 'create', frameId: f.id, snapshot: snapshot(f) }))
-  push(entries.length === 1 ? entries[0] : { type: 'group', entries })
+  const [first] = entries
+  push(entries.length === 1 && first ? first : { type: 'group', entries })
 }
 
 /** Delete a frame through the API, remembering enough to bring it back. */

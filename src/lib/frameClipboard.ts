@@ -83,7 +83,7 @@ async function createFrames(requests: { canvasId: string; frame: Parameters<type
 function createFromClip(canvasId: string, x: number, y: number) {
   const frames = readClip()
   if (!frames.length) return
-  createFrames(
+  void createFrames(
     frames.map((f) => ({
       canvasId,
       frame: {
@@ -218,7 +218,7 @@ export async function pasteImagesCentered(canvasId: string, files: File[]) {
  *  several frames land as one undo step and become the new selection. */
 export function duplicateFrames(frames: Frame[]) {
   if (!frames.length) return
-  createFrames(
+  void createFrames(
     frames.map((frame) => ({
       canvasId: frame.canvasId,
       frame: {

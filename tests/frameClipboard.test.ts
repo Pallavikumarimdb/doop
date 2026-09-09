@@ -60,8 +60,8 @@ describe('multi-frame copy and paste', () => {
     await flush()
 
     expect(api.createFrame).toHaveBeenCalledTimes(2)
-    const [, a] = api.createFrame.mock.calls[0]
-    const [, b] = api.createFrame.mock.calls[1]
+    const [, a] = api.createFrame.mock.calls[0]!
+    const [, b] = api.createFrame.mock.calls[1]!
     /* the group spans 250×100 (a at 0,0 and b at 200,50 relative), so its
        top-left sits at the view centre minus half of that */
     expect(a).toMatchObject({ name: 'a', html: '<p>a</p>', x: 375, y: 350, width: 100, height: 100 })
@@ -74,7 +74,7 @@ describe('multi-frame copy and paste', () => {
     await flush()
 
     expect(useStore.getState().selectedIds).toEqual(['new1', 'new2'])
-    history.undo()
+    await history.undo()
     await flush()
     expect(api.deleteFrame).toHaveBeenCalledTimes(2)
   })
@@ -84,8 +84,8 @@ describe('multi-frame copy and paste', () => {
     clipboard.pasteFrameAtScreen('c1', 10, 20)
     await flush()
 
-    expect(api.createFrame.mock.calls[0][1]).toMatchObject({ x: 10, y: 20 })
-    expect(api.createFrame.mock.calls[1][1]).toMatchObject({ x: 210, y: 70 })
+    expect(api.createFrame.mock.calls[0]![1]).toMatchObject({ x: 10, y: 20 })
+    expect(api.createFrame.mock.calls[1]![1]).toMatchObject({ x: 210, y: 70 })
   })
 
   it('still reads a single-frame clip written before multi-frame copy', async () => {
@@ -95,7 +95,7 @@ describe('multi-frame copy and paste', () => {
     await flush()
 
     expect(api.createFrame).toHaveBeenCalledTimes(1)
-    expect(api.createFrame.mock.calls[0][1]).toMatchObject({ name: 'old', x: 400, y: 350 })
+    expect(api.createFrame.mock.calls[0]![1]).toMatchObject({ name: 'old', x: 400, y: 350 })
   })
 
   it('keeps the frames that landed when one create fails', async () => {
@@ -109,7 +109,7 @@ describe('multi-frame copy and paste', () => {
 
     /* the first request failed, the second landed as new1 */
     expect(useStore.getState().selectedIds).toEqual(['new1'])
-    history.undo()
+    await history.undo()
     await flush()
     expect(api.deleteFrame).toHaveBeenCalledTimes(1)
     expect(api.deleteFrame).toHaveBeenCalledWith('new1')
@@ -120,9 +120,9 @@ describe('multi-frame copy and paste', () => {
     clipboard.copyFrames([frame('a', 100, 100), frame('b', 300, 150)])
     clipboard.pasteFrameCentered('c1')
     await flush()
-    history.undo()
+    await history.undo()
     await flush()
-    history.redo()
+    await history.redo()
     await flush()
 
     expect(useStore.getState().selectedIds).toEqual(['new3', 'new4'])
@@ -132,8 +132,8 @@ describe('multi-frame copy and paste', () => {
     clipboard.duplicateFrames([frame('a', 100, 100), frame('b', 300, 150)])
     await flush()
 
-    expect(api.createFrame.mock.calls[0][1]).toMatchObject({ name: 'a copy', x: 140, y: 140 })
-    expect(api.createFrame.mock.calls[1][1]).toMatchObject({ name: 'b copy', x: 340, y: 190 })
+    expect(api.createFrame.mock.calls[0]![1]).toMatchObject({ name: 'a copy', x: 140, y: 140 })
+    expect(api.createFrame.mock.calls[1]![1]).toMatchObject({ name: 'b copy', x: 340, y: 190 })
     expect(useStore.getState().selectedIds).toEqual(['new1', 'new2'])
   })
 })
