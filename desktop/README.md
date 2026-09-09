@@ -39,14 +39,18 @@ bun run build  # macOS: .app + .dmg; Windows: NSIS .exe in src-tauri/target/rele
 ```
 
 CI (`.github/workflows/desktop.yml`) builds an unsigned macOS .app and Windows
-NSIS installer on every PR that touches `desktop/`, and on manual dispatch.
+NSIS installer on every PR that touches `desktop/`, on pushes to `main` (to
+keep the Rust build cache warm), and on manual dispatch. The toolchain setup
+shared by every desktop job lives in `.github/actions/setup-desktop`.
 
 ## Releasing Desktop Installers
 
 `.github/workflows/desktop-release.yml` builds a universal (Apple Silicon +
 Intel) DMG for macOS and an NSIS installer for Windows:
 
-- push a tag `desktop-v*` → DMG and Windows installer attached to a GitHub Release
+- push a tag `desktop-v*` → both installers attached to a GitHub Release. The
+  release is created only after both builds succeed, so a tag never ships
+  with one installer missing.
 - manual dispatch → DMG and Windows installer as workflow artifacts
 
 Versions are bumped by release-please: commits touching `desktop/` open a
@@ -63,6 +67,13 @@ Until the `APPLE_*` secrets exist the DMG is **unsigned**: it runs, but
 because of Gatekeeper, downloaders must approve it under System Settings →
 Privacy & Security → "Open Anyway". Fine for testers, not for the public —
 don't link it from the site.
+
+The Windows installer is **always unsigned** — there is no Authenticode
+certificate configured. SmartScreen shows "Windows protected your PC" on
+first run; users click "More info" → "Run anyway". Signing it is the
+equivalent of the Apple setup below: a code-signing certificate wired into
+`bundle.windows` in `src-tauri/tauri.conf.json` (see the Tauri Windows
+code-signing guide). Until then, same rule as the DMG: testers only.
 
 ### One-time signing setup (needs an Apple Developer membership)
 
