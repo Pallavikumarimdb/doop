@@ -662,7 +662,7 @@ function CanvasActions({
             'grid cursor-pointer place-items-center rounded-full transition-[opacity,background,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
             compact
               ? 'size-8 flex-none text-ink-faint hover:bg-paper-deep hover:text-ink'
-              : 'absolute right-2 top-2 size-10 bg-ink/75 text-white opacity-100 hover:bg-ink md:size-7 md:opacity-0 md:group-hover:opacity-100 md:data-[state=open]:opacity-100',
+              : 'absolute right-2 top-2 size-10 bg-ink/75 text-paper opacity-100 hover:bg-ink md:size-7 md:opacity-0 md:group-hover:opacity-100 md:data-[state=open]:opacity-100',
           )}
         >
           <MoreHorizontalIcon className="size-4" />
