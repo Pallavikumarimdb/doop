@@ -410,4 +410,6 @@ export const backgrounds = pgTable('backgrounds', {
   /** off = kept but hidden from search; new uploads without tags start off */
   enabled: boolean('enabled').notNull().default(true),
   createdAt: bigint('created_at', { mode: 'number' }).notNull(),
+  /** Voyage voyage-multimodal-3 multimodal embedding vector for similarity search; null when key unset or not backfilled */
+  embedding: jsonb('embedding').$type<number[] | null>(),
 })
