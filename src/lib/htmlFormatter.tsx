@@ -18,12 +18,15 @@ const VOID_ELEMENTS = new Set([
   'wbr',
 ])
 
-/** Formats an HTML string with clean 2-space indentation and line breaks. */
+/** Formats an HTML string cleanly while safely preserving <script>, <style>, <pre>, and <textarea> blocks verbatim. */
 export function formatHtml(html: string): string {
   if (!html) return ''
 
   const str = html.replace(/\r\n/g, '\n').trim()
-  const tokens = str.split(/(<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<!DOCTYPE[^>]*>|<[^>]+>)/gi)
+  // Regex captures comments, doctypes, raw script/style/pre/textarea blocks, and regular tags
+  const tokens = str.split(
+    /(<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<!DOCTYPE[^>]*>|<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<pre[\s\S]*?<\/pre>|<textarea[\s\S]*?<\/textarea>|<[^>]+>)/gi,
+  )
 
   let formatted = ''
   let indentLevel = 0
@@ -37,7 +40,16 @@ export function formatHtml(html: string): string {
     if (!trimmed) continue
 
     if (trimmed.startsWith('<')) {
-      if (trimmed.startsWith('<!--') || trimmed.toUpperCase().startsWith('<!DOCTYPE')) {
+      const lower = trimmed.toLowerCase()
+      if (trimmed.startsWith('<!--') || lower.startsWith('<!doctype')) {
+        formatted += (formatted ? '\n' : '') + indentStr.repeat(indentLevel) + trimmed
+      } else if (
+        lower.startsWith('<script') ||
+        lower.startsWith('<style') ||
+        lower.startsWith('<pre') ||
+        lower.startsWith('<textarea')
+      ) {
+        // Raw block element - preserve inner content without mangling
         formatted += (formatted ? '\n' : '') + indentStr.repeat(indentLevel) + trimmed
       } else if (trimmed.startsWith('</')) {
         indentLevel = Math.max(0, indentLevel - 1)

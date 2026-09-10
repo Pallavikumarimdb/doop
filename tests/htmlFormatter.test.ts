@@ -28,4 +28,13 @@ describe('formatHtml', () => {
     expect(formatted).toContain('  <input type="text">')
     expect(formatted).toContain('</div>')
   })
+
+  it('preserves script and style blocks safely without corrupting JS comparison operators', () => {
+    const raw =
+      '<html><head><script>for(let i=0; i<10; i++){ console.log(i); }</script><style>body { color: red; }</style></head></html>'
+    const formatted = formatHtml(raw)
+
+    expect(formatted).toContain('<script>for(let i=0; i<10; i++){ console.log(i); }</script>')
+    expect(formatted).toContain('<style>body { color: red; }</style>')
+  })
 })

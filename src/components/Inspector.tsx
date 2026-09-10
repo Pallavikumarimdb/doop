@@ -44,24 +44,23 @@ export function Inspector({
   const frameId = useRef(frame.id)
 
   function copyHtml() {
-    const formatted = formatHtml(draft || frame.html)
-    navigator.clipboard.writeText(formatted).then(() => {
+    navigator.clipboard.writeText(draft).then(() => {
       setCopiedHtml(true)
       window.setTimeout(() => setCopiedHtml(false), 1500)
     }, console.error)
   }
 
   /* switching frames resets the draft; otherwise pull in remote html
-     updates unless the user is typing */
+     updates unless the user is typing in the textarea or expanded modal */
   useEffect(() => {
     const switched = frameId.current !== frame.id
     frameId.current = frame.id
-    const typing = document.activeElement === textareaRef.current
+    const typing = document.activeElement === textareaRef.current || showCodeViewer
     if (switched || (!typing && frame.html !== draft)) {
       setDraft(frame.html)
       setSaveState('idle')
     }
-  }, [frame.id, frame.html, draft])
+  }, [frame.id, frame.html, draft, showCodeViewer])
 
   function onHtmlChange(value: string) {
     setDraft(value)

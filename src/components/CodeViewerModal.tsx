@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Frame } from '../../shared/types'
 import { Modal, ModalEyebrow, ModalTitle } from './ui/modal'
 import { Button } from './ui/button'
@@ -19,26 +19,36 @@ export function CodeViewerModal({
   onClose: () => void
   onSaveCode?: (newCode: string) => void
 }) {
-  const [draft, setDraft] = useState(() => formatHtml(code || frame.html))
+  const [draft, setDraft] = useState(code)
   const [copied, setCopied] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [wrapLines, setWrapLines] = useState(false)
+  const frameIdRef = useRef(frame.id)
+
+  /* Keep modal draft synchronized with incoming frame updates or frame switching */
+  useEffect(() => {
+    const switched = frameIdRef.current !== frame.id
+    frameIdRef.current = frame.id
+    if (switched || (!isEditing && code !== draft)) {
+      setDraft(code)
+    }
+  }, [frame.id, code, isEditing, draft])
 
   if (!open) return null
 
-  const formattedCode = formatHtml(draft)
-  const linesCount = formattedCode.split('\n').length
-  const charCount = formattedCode.length
+  const displayCode = draft
+  const linesCount = displayCode ? displayCode.split('\n').length : 0
+  const charCount = displayCode.length
 
   function handleCopy() {
-    navigator.clipboard.writeText(formattedCode).then(() => {
+    navigator.clipboard.writeText(draft).then(() => {
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1800)
     }, console.error)
   }
 
   function handleDownload() {
-    const blob = new Blob([formattedCode], { type: 'text/html;charset=utf-8' })
+    const blob = new Blob([draft], { type: 'text/html;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -132,7 +142,7 @@ export function CodeViewerModal({
           />
         ) : (
           <div className="h-full w-full overflow-auto p-4.5">
-            <HtmlHighlightView code={formattedCode} showLineNumbers wrapLines={wrapLines} />
+            <HtmlHighlightView code={draft} showLineNumbers wrapLines={wrapLines} />
           </div>
         )}
       </div>
@@ -140,11 +150,10 @@ export function CodeViewerModal({
       {/* Footer Status Bar with Doop brand styling */}
       <div className="flex items-center justify-between border-t border-line-soft pt-3.5 font-mono text-xs text-ink-faint">
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5 text-ink font-medium">
+          <span className="flex items-center gap-1.5 font-medium text-ink">
             <span className="inline-block size-2 rounded-full bg-brand" /> HTML5 Complete Page
           </span>
           <span>UTF-8</span>
-          <span>Formatted</span>
         </div>
         <span>Press Esc to close</span>
       </div>
