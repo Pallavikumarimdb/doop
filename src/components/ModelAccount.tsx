@@ -75,7 +75,7 @@ function planName(plan: string): string {
 const planRow = (live: boolean) =>
   cn(
     'flex gap-[14px] border-b border-line-soft px-[22px] py-[18px] last:border-b-0 max-md:gap-3 max-md:px-4 max-md:py-[17px]',
-    live && 'bg-[linear-gradient(90deg,rgba(63,156,82,0.05),transparent_40%)]',
+    live && 'bg-[linear-gradient(90deg,color-mix(in_srgb,var(--success)_5%,transparent),transparent_40%)]',
   )
 const planMark = (live: boolean) =>
   cn(
@@ -85,7 +85,7 @@ const planMark = (live: boolean) =>
 const planPill = (on: boolean) =>
   cn(
     'rounded-full bg-paper-deep px-[9px] py-[3px] text-[11.5px] font-bold text-ink-faint',
-    on && 'bg-[rgba(30,122,76,0.12)] text-[#1a6b43]',
+    on && 'bg-success-ink/12 text-success-ink',
   )
 /* the model tiers as chips — the base .chip recipe reshaped into the picker */
 const planAsCode =
@@ -511,7 +511,7 @@ function Tick() {
       <path
         d="M4 10.5 L8 14.5 L16 5.5"
         fill="none"
-        stroke="#1a6b43"
+        stroke="var(--success-ink)"
         strokeWidth="2.8"
         strokeLinecap="round"
         strokeLinejoin="round"
