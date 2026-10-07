@@ -136,23 +136,25 @@ function withFeedback<T extends { content: { type: 'text' | 'image'; [k: string]
   return result
 }
 
-/* upload rate limit per connecting user, mirroring the page-import route */
+/* Per-connecting-user rate limits, each overridable by environment variable
+   for self-hosted instances that want a looser cap (see .env.example). The
+   defaults are the conservative values that suit the hosted service. */
 const uploadHits = new Map<string, number[]>()
-const UPLOADS_PER_MIN = 15
+const UPLOADS_PER_MIN = Number(process.env.MCP_UPLOADS_PER_MIN || 15)
 
 /* photo search burns the shared Pexels quota (200 req/hour on the free tier) */
 const searchHits = new Map<string, number[]>()
-const SEARCHES_PER_MIN = 12
+const SEARCHES_PER_MIN = Number(process.env.MCP_SEARCHES_PER_MIN || 12)
 
 /* generation spends the payer's subscription quota or money — keep a burst
    of retries from draining it */
 const generateHits = new Map<string, number[]>()
-const GENERATIONS_PER_MIN = 6
+const GENERATIONS_PER_MIN = Number(process.env.MCP_GENERATIONS_PER_MIN || 6)
 
 /* importing writes a potentially large HTML frame, so keep it at the same
    conservative per-user rate as the browser UI's import endpoint */
 const importHits = new Map<string, number[]>()
-const IMPORTS_PER_MIN = 5
+const IMPORTS_PER_MIN = Number(process.env.MCP_IMPORTS_PER_MIN || 5)
 
 const agentName = z
   .string()
